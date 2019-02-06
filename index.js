@@ -22,13 +22,12 @@ function renderBook(book) {
     let element = document.createElement('li')
     element.dataset.id = book.id
     element.textContent = book.title
-    element.addEventListener('click', renderBookInfo)
+    element.addEventListener('click', () => renderBookInfo(book.id))
     bookList.appendChild(element)
 }
 
-function renderBookInfo() {
+function renderBookInfo(id) {
     bookInfo.innerHTML = ""
-    let id = parseInt(event.target.dataset.id)
     let url2 = `http://localhost:3000/books/${id}`; 
     getBook(url2).then(bookInfoView)
 }
@@ -54,11 +53,34 @@ function bookInfoView(book) {
         } 
     let likeBtn = document.createElement('button')
     likeBtn.textContent = "Like <3"
-    likeBtn.dataset.id = book.id
-    likeBtn.addEventListener('click', addLike)
+    likeBtn.addEventListener('click', () => addLike(book))
     bookInfo.appendChild(likeBtn)
 } 
 
-function addLike() {
-    ///////////
+function addLike(book) {
+    let id = book.id
+    let me = {id:1, username:"pouros"}
+    
+    if (book.users.some(e => e.id === 1)) {
+        let users = book.users.filter(e => e.id !== 1)
+        updateBook(id, users).then(() => renderBookInfo(id))
+    } else {
+        book.users.push(me)
+        let users = book.users
+        updateBook(id, users).then(() => renderBookInfo(id))
+    }
+} 
+
+function updateBook(id, newUsers) {
+    return fetch(`http://localhost:3000/books/${id}`,{
+        method: 'PATCH',
+        headers: 
+        {
+          "Content-Type": "application/json",
+          Accept: "application/json"
+        }, 
+        body: JSON.stringify({
+          users: newUsers
+        })
+    }) 
 }
